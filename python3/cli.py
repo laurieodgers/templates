@@ -3,42 +3,50 @@
 import logging
 import argparse
 import sys
+import os
 #######################################
 appName = "cli_template"
+version = "1.0.0"
 #######################################
+# get the filename and directory of this app
+appFilename = os.path.basename(__file__)
+appDirectory = os.path.dirname(os.path.realpath(__file__))
+
 # get an argparser object
 argParser = argparse.ArgumentParser(
     description='''Description of cli_template goes here''',
-    epilog='''Example:
-    cli_template (args)
-    ''',
+    epilog="Example:\n  " + appFilename + " -l warning",
     formatter_class=argparse.RawDescriptionHelpFormatter
 )
 
-# allow user to set log level on command line
-argParser.add_argument('--loglevel', help='Set log level on console (optional, default=info). Use one of: "critical" "error" "warning" "info" "debug"', default="info")
-argParser.add_argument('--quiet', help='Prevents any log output to the console (optional). Logs will still be sent to the output file.', action='store_true')
+argParser.add_argument('-d', '--debug', help='Enable debug mode. Equivalent to `-l debug`', action='store_true')
+argParser.add_argument('-l', '--loglevel', help='Set log level on console', default="info", choices=['critical', 'error', 'warning', 'info', 'debug'], type=str.lower)
+argParser.add_argument('-q', '--quiet', help='Prevents any log output to the console. Logs will still be sent to the output file.', action='store_true')
+argParser.add_argument('-v', '--version', help='Prints the version of this command', action='store_true')
 
 # parse args
 args = argParser.parse_args()
 
 #######################################
-# sanity checks
-logLevel = args.loglevel.lower()
-if (logLevel not in ['critical', 'error', 'warning', 'info', 'debug']):
-    print('Invalid log level "' + logLevel + "'")
-    sys.exit(1)
+# print version
+if (args.version):
+    print(appFilename + ' (' + appName + ')' + ' ' + version)
+    sys.exit(0)
+
+if (args.debug):
+    args.loglevel = 'debug'
+
 #######################################
 # Set up logging
 
-if (logLevel == 'critical'):
-    consoleLogLevel = logging.CRITICAL
-elif (logLevel == 'error'):
-    consoleLogLevel = logging.ERROR
-elif (logLevel == 'warning'):
-    consoleLogLevel = logging.WARNING
-elif (logLevel == 'debug'):
+if (args.loglevel == 'debug'):
     consoleLogLevel = logging.DEBUG
+elif (args.loglevel == 'warning'):
+    consoleLogLevel = logging.WARNING
+elif (args.loglevel == 'error'):
+    consoleLogLevel = logging.ERROR
+elif (args.loglevel == 'critical'):
+    consoleLogLevel = logging.CRITICAL
 else:
     # use INFO by default
     consoleLogLevel = logging.INFO
