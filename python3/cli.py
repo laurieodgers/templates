@@ -17,6 +17,7 @@ argParser = argparse.ArgumentParser(
 
 # allow user to set log level on command line
 argParser.add_argument('--loglevel', help='Set log level on console (optional, default=info). Use one of: "critical" "error" "warning" "info" "debug"', default="info")
+argParser.add_argument('--quiet', help='Prevents any log output to the console (optional). Logs will still be sent to the output file.', action='store_true')
 
 # parse args
 args = argParser.parse_args()
@@ -49,17 +50,19 @@ logger = logging.getLogger(appName)
 fh = logging.FileHandler('/var/log/' + appName + '.log')
 fh.setLevel(logging.INFO)
 
-# create console handler
-ch = logging.StreamHandler()
-ch.setLevel(consoleLogLevel)
-
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-# add the handlers to the logger
 logger.addHandler(fh)
-logger.addHandler(ch)
+
+# create console handler if quiet wasnt requested
+if (not args.quiet):
+    ch = logging.StreamHandler()
+    ch.setLevel(consoleLogLevel)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
 #######################################
 
 logger.debug('this is a debug message')
