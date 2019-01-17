@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 
 import logging
+import logging.handlers
 import argparse
 import sys
 import os
@@ -20,6 +21,7 @@ argParser = argparse.ArgumentParser(
 )
 
 argParser.add_argument('-d', '--debug', help='Enable debug mode. Equivalent to `-l debug`', action='store_true')
+argParser.add_argument('--logfile', help='File path to write logs to. default=/var/log/(appName).log', default="/var/log/" + appName + ".log")
 argParser.add_argument('-l', '--loglevel', help='Set log level on console', default="info", choices=['critical', 'error', 'warning', 'info', 'debug'], type=str.lower)
 argParser.add_argument('-q', '--quiet', help='Prevents any log output to the console. Logs will still be sent to the output file.', action='store_true')
 argParser.add_argument('-v', '--version', help='Prints the version of this command', action='store_true')
@@ -54,9 +56,20 @@ else:
 logging.getLogger().setLevel(logging.DEBUG)
 logger = logging.getLogger(appName)
 
-# create file handler which logs even debug messages
-fh = logging.FileHandler('/var/log/' + appName + '.log')
+# set up log file
+if (args.logfile is not None):
+    if (args.logfile == 'syslog'):
+        fh = logging.handlers.SysLogHandler(address='/dev/log')
+    else:
+        # TODO: check if the file can be written to
+        logfileName = args.logfile
+        fh = logging.FileHandler(logfileName)
+else:
+    logfileName = '/var/log/' + appName + '.log'
+    fh = logging.FileHandler(logfileName)
+
 fh.setLevel(logging.INFO)
+
 
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
