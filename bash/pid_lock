@@ -1,0 +1,31 @@
+#!/bin/bash
+set -x
+
+name="${1}"
+
+if [[ -z "${name}" ]]; then
+    echo "Enter a name"
+    exit 1
+fi
+
+
+pid_file="/var/log/rsync-${name}"
+
+
+if [[ -f "${pid_file}" ]]; then
+    #work out if the pid exists and is rsync
+    previous_pid=$( cat ${pid_file} )
+
+    if [[ -n $( ps -o cmd= -p ${previous_pid} | grep sleep ) ]]; then
+    #if [[ -n $( ps -o cmd= -p ${previous_pid} | grep rsync ) ]]; then
+        echo "rsync already running with pid ${previous_pid}. Exiting."
+        exit 1
+    fi
+fi
+
+echo 'rsync -zlrvh "/san/files/${name}" admin@192.168.0.20:"/share/MD0_DATA/${name}"'
+
+sleep 120 &
+pid=$!
+
+echo ${pid} > "${pid_file}"
